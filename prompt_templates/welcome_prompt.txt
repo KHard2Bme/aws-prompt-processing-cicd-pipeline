@@ -1,3 +1,0 @@
-Hi {{ name }},
-
-Welcome! We're excited to have you join us. {{ topic }}
