@@ -30,7 +30,6 @@ def call_bedrock(prompt, max_tokens=1024):
     response_body = json.loads(response["body"].read())
     content = response_body.get("content", [])
 
-    # Convert list of blocks to a string
     if isinstance(content, list):
         return "".join([block.get("text", "") for block in content])
     return content
@@ -39,6 +38,17 @@ def upload_to_s3(file_path, bucket_name, key):
     s3 = boto3.client("s3")
     s3.upload_file(str(file_path), bucket_name, key)
     print(f"Uploaded {file_path} to s3://{bucket_name}/{key}")
+
+def copy_to_index(bucket_name, source_key, dest_key="index.html"):
+    s3 = boto3.client("s3")
+    s3.copy_object(
+        Bucket=bucket_name,
+        CopySource={'Bucket': bucket_name, 'Key': source_key},
+        Key=dest_key,
+        ContentType='text/html',
+        MetadataDirective='REPLACE'
+    )
+    print(f"Copied {source_key} to {dest_key} for website default.")
 
 def main(env, bucket):
     prompts_dir = Path("prompts")
@@ -68,10 +78,13 @@ def main(env, bucket):
         s3_key = f"{env}/outputs/{output_filename}"
         upload_to_s3(output_path, bucket, s3_key)
 
+        # Also copy latest output to index.html in the env root (optional)
+        index_key = f"{env}/index.html"
+        copy_to_index(bucket, s3_key, index_key)
+
 if __name__ == "__main__":
     env = os.environ.get("DEPLOY_ENV", "beta").lower()
 
-    # Select correct bucket for beta or prod
     if env == "prod":
         bucket = os.environ.get("S3_BUCKET_PROD")
     else:
@@ -82,5 +95,6 @@ if __name__ == "__main__":
 
     print(f"[INFO] Environment: {env}, Using bucket: {bucket}")
     main(env, bucket)
+
 
   
