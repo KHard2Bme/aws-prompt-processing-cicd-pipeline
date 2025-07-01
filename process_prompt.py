@@ -37,7 +37,7 @@ def call_bedrock(prompt, max_tokens=1024):
 def upload_to_s3(file_path, bucket_name, key):
     s3 = boto3.client("s3")
     s3.upload_file(str(file_path), bucket_name, key)
-    print(f"Uploaded {file_path} to s3://{bucket_name}/{key}")
+    print(f"✅ Uploaded {file_path} to s3://{bucket_name}/{key}")
 
 def copy_to_index(bucket_name, source_key, dest_key="index.html"):
     s3 = boto3.client("s3")
@@ -48,7 +48,7 @@ def copy_to_index(bucket_name, source_key, dest_key="index.html"):
         ContentType='text/html',
         MetadataDirective='REPLACE'
     )
-    print(f"Copied {source_key} to {dest_key} for website default.")
+    print(f"🔁 Copied {source_key} to s3://{bucket_name}/{dest_key}")
 
 def main(env, bucket):
     prompts_dir = Path("prompts")
@@ -62,7 +62,7 @@ def main(env, bucket):
 
         template_file = templates_dir / prompt_file.name.replace(".json", ".txt")
         if not template_file.exists():
-            print(f"Template not found for {prompt_file.name}, skipping...")
+            print(f"⚠️ Template not found for {prompt_file.name}, skipping.")
             continue
 
         rendered_prompt = render_template(template_file, config)
@@ -75,12 +75,16 @@ def main(env, bucket):
         with open(output_path, "w") as out_f:
             out_f.write(bedrock_response)
 
+        # Upload to env-specific outputs folder
         s3_key = f"{env}/outputs/{output_filename}"
         upload_to_s3(output_path, bucket, s3_key)
 
-        # Also copy latest output to index.html in the env root (optional)
-        index_key = f"{env}/index.html"
-        copy_to_index(bucket, s3_key, index_key)
+        # Copy to root index.html (for website root)
+        copy_to_index(bucket, s3_key, "index.html")
+
+        # Optional: copy to beta/index.html if env is beta
+        if env == "beta":
+            copy_to_index(bucket, s3_key, "beta/index.html")
 
 if __name__ == "__main__":
     env = os.environ.get("DEPLOY_ENV", "beta").lower()
@@ -91,10 +95,12 @@ if __name__ == "__main__":
         bucket = os.environ.get("S3_BUCKET_BETA")
 
     if not bucket:
-        raise ValueError(f"{env.upper()} S3 bucket environment variable is not set.")
+        raise ValueError("S3_BUCKET environment variable is not set.")
 
-    print(f"[INFO] Environment: {env}, Using bucket: {bucket}")
+    print(f"🌍 Environment: {env}")
+    print(f"🪣 Using bucket: {bucket}")
     main(env, bucket)
+
 
 
   
