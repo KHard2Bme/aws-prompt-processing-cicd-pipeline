@@ -39,7 +39,7 @@ def upload_to_s3(file_path, bucket_name, key):
     s3.upload_file(str(file_path), bucket_name, key)
     print(f"Uploaded {file_path} to s3://{bucket_name}/{key}")
 
-def copy_to_index(bucket_name, source_key):
+def copy_to_root_index(bucket_name, source_key):
     s3 = boto3.client("s3")
     s3.copy_object(
         Bucket=bucket_name,
@@ -48,7 +48,7 @@ def copy_to_index(bucket_name, source_key):
         ContentType='text/html',
         MetadataDirective='REPLACE'
     )
-    print(f"Copied {source_key} to s3://{bucket_name}/index.html")
+    print(f"Copied {source_key} to root index.html")
 
 def main(env, bucket):
     prompts_dir = Path("prompts")
@@ -62,13 +62,13 @@ def main(env, bucket):
 
         template_file = templates_dir / prompt_file.name.replace(".json", ".txt")
         if not template_file.exists():
-            print(f"Template not found for {prompt_file.name}, skipping.")
+            print(f"Template not found for {prompt_file.name}, skipping...")
             continue
 
         rendered_prompt = render_template(template_file, config)
         bedrock_response = call_bedrock(rendered_prompt)
 
-        output_ext = config.get("output_format", "html")
+        output_ext = config.get("output_format", "html")  # default to html
         output_filename = prompt_file.stem + f".{output_ext}"
         output_path = outputs_dir / output_filename
 
@@ -78,7 +78,8 @@ def main(env, bucket):
         s3_key = f"{env}/outputs/{output_filename}"
         upload_to_s3(output_path, bucket, s3_key)
 
-        copy_to_index(bucket, s3_key)
+        # Copy latest output to root index.html for website default
+        copy_to_root_index(bucket, s3_key)
 
 if __name__ == "__main__":
     env = os.environ.get("DEPLOY_ENV", "beta").lower()
@@ -89,10 +90,9 @@ if __name__ == "__main__":
         bucket = os.environ.get("S3_BUCKET_BETA")
 
     if not bucket:
-        raise ValueError("S3_BUCKET environment variable is not set.")
+        raise ValueError(f"{env.upper()} S3 bucket environment variable is not set.")
 
-    print(f"Environment: {env}")
-    print(f"Using bucket: {bucket}")
+    print(f"[INFO] Environment: {env}, Using bucket: {bucket}")
     main(env, bucket)
 
 
