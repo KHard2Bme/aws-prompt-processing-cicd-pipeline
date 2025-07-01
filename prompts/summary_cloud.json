@@ -1,0 +1,6 @@
+{
+  "course_name": "Cloud Engineering Bootcamp",
+  "module_title": "CI/CD in the Cloud",
+  "topics": "CodePipeline, GitHub Actions, automated testing, deployment strategies",
+  "output_format": "html"
+}
