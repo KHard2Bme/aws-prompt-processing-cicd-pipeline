@@ -4,6 +4,7 @@ from pathlib import Path
 import boto3
 from jinja2 import Template
 
+# Constants
 BEDROCK_MODEL_ID = "anthropic.claude-3-sonnet-20240229-v1:0"
 
 def render_template(template_path, variables):
@@ -12,7 +13,12 @@ def render_template(template_path, variables):
     return template.render(**variables)
 
 def call_bedrock(prompt, max_tokens=1024):
-    client = boto3.client("bedrock-runtime")
+    region = os.environ.get("AWS_REGION")
+    if not region:
+        raise ValueError("AWS_REGION environment variable is not set.")
+
+    client = boto3.client("bedrock-runtime", region_name=region)
+
     body = {
         "anthropic_version": "bedrock-2023-05-31",
         "max_tokens": max_tokens,
@@ -23,10 +29,12 @@ def call_bedrock(prompt, max_tokens=1024):
             }
         ]
     }
+
     response = client.invoke_model(
         modelId=BEDROCK_MODEL_ID,
         body=json.dumps(body)
     )
+
     response_body = json.loads(response["body"].read())
     content = response_body.get("content", [])
 
@@ -37,9 +45,9 @@ def call_bedrock(prompt, max_tokens=1024):
 def upload_to_s3(file_path, bucket_name, key):
     s3 = boto3.client("s3")
     s3.upload_file(str(file_path), bucket_name, key)
-    print(f"Uploaded {file_path} to s3://{bucket_name}/{key}")
+    print(f"[S3 Upload] s3://{bucket_name}/{key}")
 
-def copy_to_index(bucket_name, source_key):
+def copy_to_root_index(bucket_name, source_key):
     s3 = boto3.client("s3")
     s3.copy_object(
         Bucket=bucket_name,
@@ -48,7 +56,7 @@ def copy_to_index(bucket_name, source_key):
         ContentType='text/html',
         MetadataDirective='REPLACE'
     )
-    print(f"Copied {source_key} to s3://{bucket_name}/index.html")
+    print(f"[S3 Copy] {source_key} → index.html")
 
 def main(env, bucket):
     prompts_dir = Path("prompts")
@@ -62,12 +70,14 @@ def main(env, bucket):
 
         template_file = templates_dir / prompt_file.name.replace(".json", ".txt")
         if not template_file.exists():
-            print(f"Template not found for {prompt_file.name}, skipping.")
+            print(f"[WARN] Template missing for {prompt_file.name}. Skipping.")
             continue
 
+        # Render + send to Bedrock
         rendered_prompt = render_template(template_file, config)
         bedrock_response = call_bedrock(rendered_prompt)
 
+        # Write output
         output_ext = config.get("output_format", "html")
         output_filename = prompt_file.stem + f".{output_ext}"
         output_path = outputs_dir / output_filename
@@ -75,10 +85,12 @@ def main(env, bucket):
         with open(output_path, "w") as out_f:
             out_f.write(bedrock_response)
 
+        # Upload to S3 path
         s3_key = f"{env}/outputs/{output_filename}"
         upload_to_s3(output_path, bucket, s3_key)
 
-        copy_to_index(bucket, s3_key)
+        # Copy to root index.html
+        copy_to_root_index(bucket, s3_key)
 
 if __name__ == "__main__":
     env = os.environ.get("DEPLOY_ENV", "beta").lower()
@@ -91,8 +103,7 @@ if __name__ == "__main__":
     if not bucket:
         raise ValueError("S3_BUCKET environment variable is not set.")
 
-    print(f"Environment: {env}")
-    print(f"Using bucket: {bucket}")
+    print(f"[INFO] Environment: {env}, Using bucket: {bucket}")
     main(env, bucket)
 
 
