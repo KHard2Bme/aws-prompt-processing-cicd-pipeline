@@ -1,20 +1,33 @@
-name: PR Workflow
+name: Prompt Preview (PR - Beta)
+
 on:
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
-  process_prompt:
+  process-prompts:
     runs-on: ubuntu-latest
-    env:
-      DEPLOY_ENV: beta
-      S3_BUCKET_BETA: ${{ secrets.S3_BUCKET_BETA }}
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: aws-actions/configure-aws-credentials@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-      - run: pip install boto3 jinja2
-      - run: python process_prompt.py
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install boto3 jinja2
+
+      - name: Run Prompt Processor (Beta)
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          S3_BUCKET_BETA: ${{ secrets.S3_BUCKET_BETA }}
+          DEPLOY_ENV: beta
+        run: |
+          python process_prompt.py
