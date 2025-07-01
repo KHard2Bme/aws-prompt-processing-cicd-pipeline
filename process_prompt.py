@@ -39,16 +39,16 @@ def upload_to_s3(file_path, bucket_name, key):
     s3.upload_file(str(file_path), bucket_name, key)
     print(f"✅ Uploaded {file_path} to s3://{bucket_name}/{key}")
 
-def copy_to_index(bucket_name, source_key, dest_key="index.html"):
+def copy_to_index(bucket_name, source_key):
     s3 = boto3.client("s3")
     s3.copy_object(
         Bucket=bucket_name,
         CopySource={'Bucket': bucket_name, 'Key': source_key},
-        Key=dest_key,
+        Key="index.html",
         ContentType='text/html',
         MetadataDirective='REPLACE'
     )
-    print(f"🔁 Copied {source_key} to s3://{bucket_name}/{dest_key}")
+    print(f"🔁 Copied {source_key} to s3://{bucket_name}/index.html")
 
 def main(env, bucket):
     prompts_dir = Path("prompts")
@@ -75,16 +75,12 @@ def main(env, bucket):
         with open(output_path, "w") as out_f:
             out_f.write(bedrock_response)
 
-        # Upload to env-specific outputs folder
         s3_key = f"{env}/outputs/{output_filename}"
         upload_to_s3(output_path, bucket, s3_key)
 
-        # Copy to root index.html (for website root)
-        copy_to_index(bucket, s3_key, "index.html")
-
-        # Optional: copy to beta/index.html if env is beta
-        if env == "beta":
-            copy_to_index(bucket, s3_key, "beta/index.html")
+        # Only copy to root-level index.html for prod
+        if env == "prod":
+            copy_to_index(bucket, s3_key)
 
 if __name__ == "__main__":
     env = os.environ.get("DEPLOY_ENV", "beta").lower()
@@ -100,6 +96,7 @@ if __name__ == "__main__":
     print(f"🌍 Environment: {env}")
     print(f"🪣 Using bucket: {bucket}")
     main(env, bucket)
+
 
 
 
