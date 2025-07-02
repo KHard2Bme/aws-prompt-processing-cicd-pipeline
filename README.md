@@ -29,6 +29,7 @@ Configure:
 ### 5. Viewing Outputs
 - Visit:
   'http://aws-prompt-processing-001-s3.s3-website-us-east-1.amazonaws.com' [BETA]
+- Visit:
   'http://aws-prompt-processing-002-s3.s3-website-us-east-1.amazonaws.com' [PROD]
   
 
