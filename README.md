@@ -37,3 +37,4 @@ Configure:
 - No credentials are hardcoded
 - Bedrock model used: `anthropic.claude-3-sonnet-20240229-v1:0`
 - Uses real-time Bedrock inference only
+check
