@@ -5,5 +5,5 @@ Module: {{ module_title }}
 Topics Covered: {{ topics }}
 
 Please write a concise summary (in 1-2 paragraphs) that highlights the key takeaways from this module. Use student-friendly language.
-Format the output in clean, structured HTML with headings and bullet points, so it’s easy for students to read on a webpage.
+Format the output in clean, structured HTML with headings and bullet points, so it’s easy for students to read on a webpage, and add a few emojis.
 Make the background color light blue.
