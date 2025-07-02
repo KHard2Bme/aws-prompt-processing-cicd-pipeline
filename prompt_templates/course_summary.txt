@@ -1,7 +1,0 @@
-You are a technical educator summarizing course content for students.
-
-Course Name: {{ course_name }}
-Module: {{ module_title }}
-Topics Covered: {{ topics }}
-
-Please write a concise summary (in 1-2 paragraphs) that highlights the key takeaways from this module. Use student-friendly language.
