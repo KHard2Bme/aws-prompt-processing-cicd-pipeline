@@ -27,9 +27,10 @@ Configure:
 - **Merge to `main` →** triggers prod deployment
 
 ### 5. Viewing Outputs
-- Visit:  
-  `http://<beta-bucket>.s3-website-<region>.amazonaws.com/beta/outputs/filename.html`  
-  `http://<prod-bucket>.s3-website-<region>.amazonaws.com/prod/outputs/filename.md`
+- Visit:
+  'http://aws-prompt-processing-001-s3.s3-website-us-east-1.amazonaws.com' [BETA]
+  'http://aws-prompt-processing-002-s3.s3-website-us-east-1.amazonaws.com' [PROD]
+  
 
 ## 🔒 Notes
 - No credentials are hardcoded
