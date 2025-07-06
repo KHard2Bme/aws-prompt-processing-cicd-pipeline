@@ -45,8 +45,8 @@ Configure:
 
 ### 5. Viewing Outputs
 
-### For the beta s3 bucket: 'http://aws-prompt-processing-001-s3.s3-website-us-east-1.amazonaws.com' 
-### For the prod s3 bucket: 'http://aws-prompt-processing-002-s3.s3-website-us-east-1.amazonaws.com' 
+### For the beta s3 bucket: 'http://aws-prompt-processing-beta-s3.s3-website-us-east-1.amazonaws.com' 
+### For the prod s3 bucket: 'http://aws-prompt-processing-prod-s3.s3-website-us-east-1.amazonaws.com' 
 
 - Go to your S3 bucket via AWS Console
 - Check `beta/outputs` or `prod/outputs` folder for needed .html file, which will also be copied to default index.html file in root folder
@@ -59,3 +59,4 @@ Configure:
 - No credentials are hardcoded
 - Bedrock model used: `anthropic.claude-3-sonnet-20240229-v1:0`
 - Uses real-time Bedrock inference only
+
