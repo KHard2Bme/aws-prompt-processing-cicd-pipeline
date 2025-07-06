@@ -1,0 +1,33 @@
+name: Prompt Preview (PR - Beta)
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  process-prompts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install boto3 jinja2
+
+      - name: Run Prompt Processor (Beta)
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          S3_BUCKET_BETA: ${{ secrets.S3_BUCKET_BETA }}
+          DEPLOY_ENV: beta
+        run: |
+          python process_prompt.py
