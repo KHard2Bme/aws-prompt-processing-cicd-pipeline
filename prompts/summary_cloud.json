@@ -1,6 +1,6 @@
 {
   "course_name": "Cloud Engineering Bootcamp",
-  "module_title":"Amazon Web Services (AWS) Fundamentals",
-  "topics":"IAM, EC2, S3, RDS, VPC, Lambda, DynamoDB",
+  "module_title":"Docker and container fundamentals",
+  "topics":"Docker architecture, containerization concepts, Docker CLI usage, creating and managing container images",
   "output_format": "html"
 }
