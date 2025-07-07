@@ -1,6 +1,6 @@
 {
   "course_name": "Cloud Engineering Bootcamp",
-  "module_title":"CI/CD in the Cloud",
-  "topics": "CodePipeline, GitHub Actions, automated testing, deployment strategies",
+  "module_title":"Amazon Web Services (AWS) Fundamentals",
+  "topics":"IAM, EC2, S3, RDS, VPC, Lambda, DynamoDB",
   "output_format": "html"
 }
